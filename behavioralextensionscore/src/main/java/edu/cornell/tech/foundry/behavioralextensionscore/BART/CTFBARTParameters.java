@@ -19,9 +19,14 @@ public class CTFBARTParameters implements Serializable {
         return maxPayingPumpsPerTrial;
     }
 
+    public boolean canExplodeOnFirstPump() {
+        return canExplodeOnFirstPump;
+    }
+
     private int numberOfTrials;
     private double earningsPerPump;
     private int maxPayingPumpsPerTrial;
+    private boolean canExplodeOnFirstPump;
 
     public CTFBARTParameters() {
 

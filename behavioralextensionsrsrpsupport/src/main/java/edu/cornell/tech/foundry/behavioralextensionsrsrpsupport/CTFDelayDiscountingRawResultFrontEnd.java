@@ -4,6 +4,7 @@ import org.researchstack.backbone.result.Result;
 import org.researchstack.backbone.result.StepResult;
 
 import java.util.Map;
+import java.util.UUID;
 
 import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingResult;
 import edu.cornell.tech.foundry.researchsuiteresultprocessor.RSRPFrontEndServiceProvider.spi.RSRPFrontEnd;
@@ -14,23 +15,29 @@ import edu.cornell.tech.foundry.researchsuiteresultprocessor.RSRPIntermediateRes
  */
 public class CTFDelayDiscountingRawResultFrontEnd implements RSRPFrontEnd {
     @Override
-    public RSRPIntermediateResult transform(Map<String, StepResult> parameters) {
+    public RSRPIntermediateResult transform(String taskIdentifier, UUID taskRunUUID, Map<String, Object> parameters) {
 
-        StepResult stepResult = parameters.get("DelayDiscountingResult");
-        if (stepResult == null) {
+        Object param = parameters.get("DelayDiscountingResult");
+        if (param == null || !(param instanceof StepResult)) {
             return null;
         }
 
+        StepResult stepResult = (StepResult)param;
         Object result = stepResult.getResult();
         if(! (result instanceof CTFDelayDiscountingResult)) {
             return null;
         }
 
-        CTFDelayDiscountingRaw raw = new CTFDelayDiscountingRaw((CTFDelayDiscountingResult)result);
+        CTFDelayDiscountingRaw raw = new CTFDelayDiscountingRaw(
+                UUID.randomUUID(),
+                taskIdentifier,
+                taskRunUUID,
+                (CTFDelayDiscountingResult)result
+        );
 
         raw.setStartDate(((CTFDelayDiscountingResult) result).getStartDate());
         raw.setEndDate(((CTFDelayDiscountingResult) result).getEndDate());
-
+        raw.setParameters(parameters);
 
         return raw;
     }

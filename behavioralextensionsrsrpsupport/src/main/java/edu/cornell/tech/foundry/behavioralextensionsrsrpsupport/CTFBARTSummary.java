@@ -1,7 +1,9 @@
 package edu.cornell.tech.foundry.behavioralextensionsrsrpsupport;
 
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+import org.apache.commons.math3.util.MathUtils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +12,7 @@ import java.util.Formatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import edu.cornell.tech.foundry.behavioralextensionscore.BART.CTFBARTResult;
 import edu.cornell.tech.foundry.behavioralextensionscore.BART.CTFBARTTrialResult;
@@ -36,6 +39,8 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
     String variableLabel;
     int maxPumpsPerBalloon;
 
+    int[] pumpsPerBalloon;
+
     int numberOfBalloons;
     int numberOfExplosions;
 
@@ -61,18 +66,36 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
     String researcherCode = "";
     double totalGains;
 
-    public CTFBARTSummary(CTFBARTResult result) {
+    public CTFBARTSummary(
+            UUID uuid,
+            String taskIdentifier,
+            UUID taskRunUUID,
+            CTFBARTResult result
+    ) {
 
-        super("GoNoGoSummary");
+        super("BARTSummary", uuid, taskIdentifier, taskRunUUID);
 
         CTFBARTTrialResult[] trialResults = result.getTrialResults();
 
         if (trialResults.length > 0) {
-            this.variableLabel = String.format("BART%.02f", trialResults[0].getPayout());
-            this.maxPumpsPerBalloon = trialResults[0].getTrial().getMaxPayingPumps();
-            this.numberOfBalloons = trialResults.length;
+            this.variableLabel = String.format("BART%.02f", trialResults[0].getTrial().getEarningPerPump());
 
+            ArrayList<Integer> pumpsPerBalloonObject = new ArrayList<>();
+            this.pumpsPerBalloon = new int[trialResults.length];
+            ArrayList<Double> payoutPerBalloon = new ArrayList<>();
             double totalGains = 0.0;
+            for(int i=0; i<trialResults.length; i++) {
+                this.pumpsPerBalloon[i] = trialResults[i].getNumPumps();
+                pumpsPerBalloonObject.add(trialResults[i].getNumPumps());
+                payoutPerBalloon.add(trialResults[i].getPayout());
+                totalGains += trialResults[i].getPayout();
+            }
+
+            this.maxPumpsPerBalloon = Collections.max(pumpsPerBalloonObject);
+
+            this.totalGains = totalGains;
+
+            this.numberOfBalloons = trialResults.length;
 
             Set<Integer> explodedIndices = new HashSet<>();
             for(int i=0; i<trialResults.length; i++) {
@@ -81,11 +104,7 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
                 if(trialResult.isExploded()) {
                     explodedIndices.add(trialResult.getTrial().getTrialIndex());
                 }
-
-                totalGains += trialResult.getPayout();
             }
-
-            this.totalGains = totalGains;
 
             this.numberOfExplosions = explodedIndices.size();
 
@@ -133,13 +152,7 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
                 this.lastThirdPumpsRange = lastThird.range;
                 this.lastThirdPumpsStdDev = lastThird.stdDev;
             }
-
-
-
-
-
         }
-
 
     }
 
@@ -151,7 +164,7 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
 
         if (trialResults.length > 0) {
 
-            int totalPumps = 0;
+//            int totalPumps = 0;
             List<Integer> pumpCounts = new ArrayList<>();
             SummaryStatistics summary = new SummaryStatistics();
 
@@ -159,7 +172,7 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
 
                 CTFBARTTrialResult trialResult = trialResults[i];
 
-                totalPumps += trialResult.getNumPumps();
+//                totalPumps += trialResult.getNumPumps();
                 pumpCounts.add(new Integer(trialResult.getNumPumps()));
 
                 summary.addValue((double)trialResult.getNumPumps());
@@ -185,6 +198,10 @@ public class CTFBARTSummary extends RSRPIntermediateResult {
 
     public int getMaxPumpsPerBalloon() {
         return maxPumpsPerBalloon;
+    }
+
+    public int[] getPumpsPerBalloon() {
+        return pumpsPerBalloon;
     }
 
     public int getNumberOfBalloons() {

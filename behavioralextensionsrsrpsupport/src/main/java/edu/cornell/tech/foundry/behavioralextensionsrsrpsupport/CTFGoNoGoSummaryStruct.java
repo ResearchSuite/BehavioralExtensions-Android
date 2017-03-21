@@ -19,16 +19,30 @@ public class CTFGoNoGoSummaryStruct {
 
     public double meanAccuracy;
     public double responseTimeMean;
-    public double responseTimeMin;
-    public double responseTimeMax;
+    public double responseTimeRange;
+    public double responseTimeStdDev;
 
-//    public double meanResponseTimeAfterOneError;
-//    public double meanResponseTimeAfterTenStreak;
+    public double meanResponseTimeAfterOneIncorrect;
+    public double meanResponseTimeAfterTenCorrect;
 
     public double meanResponseTimeCorrect;
     public double meanResponseTimeIncorrect;
 
-    public CTFGoNoGoSummaryStruct(int numberOfTrials, int numberOfCorrectResponses, int numberOfCorrectNonresponses, int numberOfIncorrectResponses, int numberOfIncorrectNonresponses, double meanAccuracy, double responseTimeMean, double responseTimeMin, double responseTimeMax, double meanResponseTimeCorrect, double meanResponseTimeIncorrect) {
+    public CTFGoNoGoSummaryStruct(
+            int numberOfTrials,
+            int numberOfCorrectResponses,
+            int numberOfCorrectNonresponses,
+            int numberOfIncorrectResponses,
+            int numberOfIncorrectNonresponses,
+            double meanAccuracy,
+            double responseTimeMean,
+            double responseTimeRange,
+            double responseTimeStdDev,
+            double meanResponseTimeAfterOneIncorrect,
+            double meanResponseTimeAfterTenCorrect,
+            double meanResponseTimeCorrect,
+            double meanResponseTimeIncorrect
+    ) {
         this.numberOfTrials = numberOfTrials;
         this.numberOfCorrectResponses = numberOfCorrectResponses;
         this.numberOfCorrectNonresponses = numberOfCorrectNonresponses;
@@ -36,8 +50,10 @@ public class CTFGoNoGoSummaryStruct {
         this.numberOfIncorrectNonresponses = numberOfIncorrectNonresponses;
         this.meanAccuracy = meanAccuracy;
         this.responseTimeMean = responseTimeMean;
-        this.responseTimeMin = responseTimeMin;
-        this.responseTimeMax = responseTimeMax;
+        this.responseTimeRange = responseTimeRange;
+        this.responseTimeStdDev = responseTimeStdDev;
+        this.meanResponseTimeAfterOneIncorrect = meanResponseTimeAfterOneIncorrect;
+        this.meanResponseTimeAfterTenCorrect = meanResponseTimeAfterTenCorrect;
         this.meanResponseTimeCorrect = meanResponseTimeCorrect;
         this.meanResponseTimeIncorrect = meanResponseTimeIncorrect;
     }
@@ -52,8 +68,10 @@ public class CTFGoNoGoSummaryStruct {
         map.put("numberOfIncorrectNonresponses", this.numberOfIncorrectNonresponses);
         map.put("meanAccuracy", this.meanAccuracy);
         map.put("responseTimeMean", this.responseTimeMean);
-        map.put("responseTimeMin", this.responseTimeMin);
-        map.put("responseTimeMax", this.responseTimeMax);
+        map.put("responseTimeRange", this.responseTimeRange);
+        map.put("responseTimeStdDev", this.responseTimeStdDev);
+        map.put("meanResponseTimeAfterOneIncorrect", this.meanResponseTimeAfterOneIncorrect);
+        map.put("meanResponseTimeAfterTenCorrect", this.meanResponseTimeAfterTenCorrect);
         map.put("meanResponseTimeCorrect", this.meanResponseTimeCorrect);
         map.put("meanResponseTimeIncorrect", this.meanResponseTimeIncorrect);
 

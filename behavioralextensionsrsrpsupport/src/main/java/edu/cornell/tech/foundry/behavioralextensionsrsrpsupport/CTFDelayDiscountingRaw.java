@@ -1,5 +1,7 @@
 package edu.cornell.tech.foundry.behavioralextensionsrsrpsupport;
 
+import java.util.UUID;
+
 import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingResult;
 import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingTrial;
 import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingTrialResult;
@@ -18,8 +20,13 @@ public class CTFDelayDiscountingRaw extends RSRPIntermediateResult {
 
     public static String type = "DelayDiscountingRaw";
 
-    public CTFDelayDiscountingRaw(CTFDelayDiscountingResult result) {
-        super(type);
+    public CTFDelayDiscountingRaw(
+            UUID uuid,
+            String taskIdentifier,
+            UUID taskRunUUID,
+            CTFDelayDiscountingResult result) {
+
+        super(type, uuid, taskIdentifier, taskRunUUID);
 
         this.variableLabel = result.getIdentifier();
 

@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 
-version = '0.0.1'
+version = '0.0.2'
 
 android {
     compileSdkVersion 25
@@ -34,8 +34,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
 
 //    compile project(":behavioralextensionscore")
-    compile 'edu.cornell.tech.foundry:behavioralextensionscore:0.0.1'
-    compile 'edu.cornell.tech.foundry:researchsuitetaskbuilder:0.0.2'
+    compile 'edu.cornell.tech.foundry:behavioralextensionscore:0.0.2'
+    compile 'edu.cornell.tech.foundry:researchsuitetaskbuilder:0.0.3'
 }
 
 ext {
