@@ -9,7 +9,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName version
@@ -33,10 +33,10 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
 
-    compile 'edu.cornell.tech.foundry:omhclient:0.0.2'
-//    compile project(":behavioralextensionsrsrpsupport")
-    compile 'edu.cornell.tech.foundry:behavioralextensionsrsrpsupport:0.0.2'
-    compile 'edu.cornell.tech.foundry:ohmageomhbackend:0.0.4'
+    compile 'edu.cornell.tech.foundry:omhclient:0.0.4'
+    compile project(":behavioralextensionsrsrpsupport")
+//    compile 'edu.cornell.tech.foundry:behavioralextensionsrsrpsupport:0.0.2'
+    compile 'edu.cornell.tech.foundry:ohmageomhbackend:0.0.5'
 }
 
 

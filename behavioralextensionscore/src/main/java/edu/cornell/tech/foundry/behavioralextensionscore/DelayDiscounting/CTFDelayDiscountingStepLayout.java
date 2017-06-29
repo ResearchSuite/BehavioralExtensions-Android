@@ -1,6 +1,7 @@
 package edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.SystemClock;
 import android.util.AttributeSet;
@@ -40,6 +41,9 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
     private StepCallbacks callbacks;
     private CTFDelayDiscountingTrialResult[] trialResults;
+
+    private CTFDelayDiscountingTrial pendingTrial;
+    private CTFDelayDiscountingTrialResult[] inProgressTrialResults;
 
 
     // UI
@@ -92,16 +96,32 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
         CTFDelayDiscountingStepParameters params = step.getStepParams();
 
-
-        CTFDelayDiscountingTrialResult[] trialResults = new CTFDelayDiscountingTrialResult[params.getNumQuestions()];
         CTFDelayDiscountingStepLayout self = this;
 
-        CTFDelayDiscountingTrial firstTrial = this.firstTrial(params, 0);
+        CTFDelayDiscountingTrialResult[] trialResults;
+        CTFDelayDiscountingTrial firstTrial;
+
+        if (result != null
+                && result.getResult() != null
+                && ((CTFDelayDiscountingResult)result.getResult()).getInProgressTrialResults() != null
+                && ((CTFDelayDiscountingResult)result.getResult()).getPendingTrial() != null) {
+            trialResults = ((CTFDelayDiscountingResult)result.getResult()).getInProgressTrialResults();
+            firstTrial = ((CTFDelayDiscountingResult)result.getResult()).getPendingTrial();
+        }
+
+        else {
+            trialResults = new CTFDelayDiscountingTrialResult[params.getNumQuestions()];
+            firstTrial = this.firstTrial(params, 0);
+        }
+
+        this.inProgressTrialResults = trialResults;
 
         this.performTrials(firstTrial, trialResults, new PerformTrialsCompletion() {
             @Override
             public void completion(CTFDelayDiscountingTrialResult[] results) {
                 self.trialResults = results;
+                self.inProgressTrialResults = null;
+                self.pendingTrial = null;
                 self.onNextClicked();
             }
         });
@@ -116,10 +136,12 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
         int index = trial.getQuestionNum();
         CTFDelayDiscountingStepLayout self = this;
+        this.pendingTrial = trial;
 
         this.doTrial(trial, new DoTrialCompletion() {
             @Override
             public void completion(CTFDelayDiscountingTrialResult result) {
+                inProgressTrialResults[index] = result;
                 results[index] = result;
 
                 CTFDelayDiscountingTrial nextTrial = self.nextTrial(result);
@@ -263,7 +285,8 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
     @Override
     public boolean isBackEventConsumed()
     {
-        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(false));
+        //clear progress on back touch
+        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(true));
         return false;
     }
 
@@ -273,10 +296,14 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
         this.callbacks = callbacks;
     }
 
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+
+    }
 
     @Override
     public Parcelable onSaveInstanceState()
     {
+        //don't clear on rotation
         callbacks.onSaveStep(StepCallbacks.ACTION_NONE, getStep(), this.getStepResult(false));
         return super.onSaveInstanceState();
     }
@@ -301,10 +328,10 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
     }
 
 
-    public StepResult getStepResult(boolean skipped)
+    public StepResult getStepResult(boolean shouldClear)
     {
 
-        if(skipped || this.trialResults == null)
+        if(shouldClear)
         {
             stepResult.setResult(null);
         }
@@ -314,6 +341,8 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
             result.setTrialResults(this.trialResults);
+            result.setInProgressTrialResults(this.inProgressTrialResults);
+            result.setPendingTrial(this.pendingTrial);
             stepResult.setResult(result);
         }
 

@@ -8,17 +8,36 @@ import org.researchstack.backbone.result.Result;
 public class CTFDelayDiscountingResult extends Result {
 
     private CTFDelayDiscountingTrialResult[] trialResults;
+    private CTFDelayDiscountingTrial pendingTrial;
+    private CTFDelayDiscountingTrialResult[] inProgressTrialResults;
 
     public CTFDelayDiscountingTrialResult[] getTrialResults() {
         return trialResults;
     }
 
     public void setTrialResults(CTFDelayDiscountingTrialResult[] trialResults) {
-        this.trialResults = trialResults.clone();
+        if (trialResults != null){
+            this.trialResults = trialResults.clone();
+        }
     }
 
     public CTFDelayDiscountingResult(String identifier) {
         super(identifier);
     }
 
+    public CTFDelayDiscountingTrialResult[] getInProgressTrialResults() {
+        return inProgressTrialResults;
+    }
+
+    public void setInProgressTrialResults(CTFDelayDiscountingTrialResult[] inProgressTrialResults) {
+        this.inProgressTrialResults = inProgressTrialResults;
+    }
+
+    public CTFDelayDiscountingTrial getPendingTrial() {
+        return pendingTrial;
+    }
+
+    public void setPendingTrial(CTFDelayDiscountingTrial pendingTrial) {
+        this.pendingTrial = pendingTrial;
+    }
 }

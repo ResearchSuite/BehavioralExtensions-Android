@@ -9,7 +9,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName version
@@ -33,9 +33,9 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
 
-//    compile project(":behavioralextensionscore")
-    compile 'edu.cornell.tech.foundry:behavioralextensionscore:0.0.2'
-    compile 'edu.cornell.tech.foundry:researchsuitetaskbuilder:0.0.3'
+    compile project(":behavioralextensionscore")
+//    compile 'edu.cornell.tech.foundry:behavioralextensionscore:0.0.2'
+    compile 'edu.cornell.tech.foundry:researchsuitetaskbuilder:0.0.5'
 }
 
 ext {

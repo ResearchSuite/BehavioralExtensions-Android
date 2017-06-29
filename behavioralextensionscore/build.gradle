@@ -3,14 +3,14 @@ apply plugin: 'me.tatarka.retrolambda'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'com.github.dcendents.android-maven'
 
-version = '0.0.2'
+version = '0.0.3'
 
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName version
@@ -38,7 +38,7 @@ dependencies {
     })
 //    compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
-    compile 'org.researchstack:backbone:1.1.1-SNAPSHOT'
+    compile 'org.researchstack:backbone:1.1.2'
     compile 'tyrantgit:explosionfield:1.0.1'
 }
 

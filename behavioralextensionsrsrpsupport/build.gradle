@@ -9,7 +9,7 @@ android {
     buildToolsVersion "25.0.2"
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
         targetSdkVersion 25
         versionCode 1
         versionName version
@@ -36,7 +36,7 @@ dependencies {
     compile 'org.apache.commons:commons-math3:3.0'
 
     compile 'edu.cornell.tech.foundry:behavioralextensionscore:0.0.2'
-    compile 'edu.cornell.tech.foundry:researchsuiteresultsprocessor:0.0.3'
+    compile 'edu.cornell.tech.foundry:researchsuiteresultsprocessor:0.0.5'
 }
 
 ext {
