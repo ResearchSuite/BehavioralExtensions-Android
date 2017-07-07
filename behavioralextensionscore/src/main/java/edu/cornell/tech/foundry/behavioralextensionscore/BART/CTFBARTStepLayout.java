@@ -19,6 +19,8 @@ import org.researchstack.backbone.ui.step.layout.StepLayout;
 import org.researchstack.backbone.ui.views.SubmitBar;
 
 import edu.cornell.tech.foundry.behavioralextensionscore.BXHelpers;
+import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingResult;
+import edu.cornell.tech.foundry.behavioralextensionscore.DelayDiscounting.CTFDelayDiscountingTrialResult;
 import edu.cornell.tech.foundry.behavioralextensionscore.R;
 import tyrantgit.explosionfield.ExplosionField;
 
@@ -42,6 +44,9 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
     private StepCallbacks callbacks;
     private CTFBARTTrial[] trials;
     private CTFBARTTrialResult[] trialResults;
+
+    private Integer pendingTrialIndex;
+    private CTFBARTTrialResult[] inProgressTrialResults;
 
     // UI
     private ImageView balloonImageView;
@@ -104,12 +109,30 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
 
         this.initStepLayout(step);
 
-        CTFBARTTrialResult[] trialResults = new CTFBARTTrialResult[this.trials.length];
-        CTFBARTStepLayout self = this;
+        Integer trialIndex;
+        CTFBARTTrialResult[] trialResults;
 
-        this.performTrials(0, trials, trialResults, new PerformTrialsCompletion() {
+        if (result != null
+                && result.getResult() != null
+                && ((CTFBARTResult)result.getResult()).getInProgressTrialResults() != null
+                && ((CTFBARTResult)result.getResult()).getPendingTrialIndex() != null) {
+            trialResults = ((CTFBARTResult)result.getResult()).getInProgressTrialResults();
+            trialIndex = ((CTFBARTResult)result.getResult()).getPendingTrialIndex();
+        }
+
+        else {
+            trialResults = new CTFBARTTrialResult[this.trials.length];
+            trialIndex = 0;
+        }
+
+        CTFBARTStepLayout self = this;
+        inProgressTrialResults = trialResults;
+
+        this.performTrials(trialIndex, trials, trialResults, new PerformTrialsCompletion() {
             @Override
             public void completion(CTFBARTTrialResult[] results) {
+                self.inProgressTrialResults = null;
+                self.pendingTrialIndex = null;
                 self.trialResults = results;
                 self.onNextClicked();
             }
@@ -184,8 +207,9 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
         return totalPayout;
     }
 
-    private void performTrials(int index, CTFBARTTrial[] trials, CTFBARTTrialResult[] results, PerformTrialsCompletion completion) {
+    private void performTrials(int index, CTFBARTTrial[] trials, CTFBARTTrialResult[] results, final PerformTrialsCompletion completion) {
 
+        this.pendingTrialIndex = index;
         //update ui
         this.updateTotalPayoutLabel(index, trials.length, this.computeTotalPayout(results));
         this.updateTrialPayoutLable(0.0);
@@ -204,6 +228,7 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
             this.doTrial(trial, new DoTrialCompletion() {
                 @Override
                 public void completion(CTFBARTTrialResult result) {
+                    inProgressTrialResults[index] = result;
                     results[index] = result;
                     self.performTrials(index + 1, trials, results, completion);
                 }
@@ -368,7 +393,8 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
     @Override
     public boolean isBackEventConsumed()
     {
-        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(false));
+        //clear pending results on back event
+        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(true));
         return false;
     }
 
@@ -382,6 +408,7 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
     @Override
     public Parcelable onSaveInstanceState()
     {
+        //don't clear  on rotation
         callbacks.onSaveStep(StepCallbacks.ACTION_NONE, getStep(), this.getStepResult(false));
         return super.onSaveInstanceState();
     }
@@ -406,10 +433,10 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
     }
 
 
-    public StepResult getStepResult(boolean skipped)
+    public StepResult getStepResult(boolean shouldClear)
     {
 
-        if(skipped || this.trialResults == null)
+        if(shouldClear)
         {
             stepResult.setResult(null);
         }
@@ -419,6 +446,8 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
             result.setTrialResults(this.trialResults);
+            result.setInProgressTrialResults(this.inProgressTrialResults);
+            result.setPendingTrialIndex(this.pendingTrialIndex);
             stepResult.setResult(result);
         }
 

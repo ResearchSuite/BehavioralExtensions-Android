@@ -96,7 +96,7 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
         CTFDelayDiscountingStepParameters params = step.getStepParams();
 
-        CTFDelayDiscountingStepLayout self = this;
+        final CTFDelayDiscountingStepLayout self = this;
 
         CTFDelayDiscountingTrialResult[] trialResults;
         CTFDelayDiscountingTrial firstTrial;
@@ -127,15 +127,15 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
         });
     }
 
-    private void performTrials(CTFDelayDiscountingTrial trial, CTFDelayDiscountingTrialResult[] results, PerformTrialsCompletion completion) {
+    private void performTrials(CTFDelayDiscountingTrial trial, final CTFDelayDiscountingTrialResult[] results, final PerformTrialsCompletion completion) {
         //update ui
 
 
 
         //do trial
 
-        int index = trial.getQuestionNum();
-        CTFDelayDiscountingStepLayout self = this;
+        final int index = trial.getQuestionNum();
+        final CTFDelayDiscountingStepLayout self = this;
         this.pendingTrial = trial;
 
         this.doTrial(trial, new DoTrialCompletion() {
@@ -190,7 +190,7 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
         return sb.toString();
     }
 
-    private void doTrial(CTFDelayDiscountingTrial trial, DoTrialCompletion completion) {
+    private void doTrial(final CTFDelayDiscountingTrial trial, final DoTrialCompletion completion) {
 
 //        this.resetBalloon(new Runnable() {
 //            @Override
@@ -199,7 +199,7 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 //            }
 //        });
 
-        long startTime = SystemClock.elapsedRealtime();
+        final long startTime = SystemClock.elapsedRealtime();
 
         CTFDelayDiscountingStepParameters params = this.step.getStepParams();
         //set button ui and handlers

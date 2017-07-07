@@ -29,6 +29,7 @@ import edu.cornell.tech.foundry.behavioralextensionscore.R;
 /**
  * Created by jameskizer on 12/12/16.
  */
+
 public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     public static final String TAG = CTFGoNoGoStepLayout.class.getSimpleName();
 
@@ -50,6 +51,10 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     private CTFGoNoGoTrial[] trials;
     private CTFGoNoGoTrialResult[] trialResults;
 
+    private Integer pendingTrialIndex;
+    private CTFGoNoGoTrialResult[] inProgressTrialResults;
+    private Boolean hasStarted = false;
+
     // Layout
     private View horizontalView;
     private View verticalView;
@@ -57,10 +62,12 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     private RelativeLayout mainLayout;
     private TextView feedbackLabel;
 
-
     private long tapTime;
 
-    private boolean canceled;
+    private Boolean stopped;
+    private Boolean getStopped() {
+        return stopped;
+    }
 
     private interface DoTrialCompletion {
         void completion(CTFGoNoGoTrialResult result);
@@ -107,7 +114,7 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     }
 
     //Init Methods
-    public void initializeStep(CTFGoNoGoStep step, StepResult result)
+    public void initializeStep(CTFGoNoGoStep step, final StepResult result)
     {
         this.trials = this.generateTrials(step.getStepParams());
 
@@ -138,9 +145,6 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
         this.feedbackLabel = (TextView) findViewById(R.id.feedback_label);
 
 
-
-        this.setViewState(CTFGoNoGoViewState.BLANK);
-
         this.mainLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -150,20 +154,37 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
     }
 
-    private void startTrials() {
-        this.canceled = false;
-
-        CTFGoNoGoStepLayout self = this;
+    private void startTrials(StepResult result) {
+        this.hasStarted = true;
+        this.stopped = false;
 
         this.trialResults = null;
-        CTFGoNoGoTrialResult[] results = new CTFGoNoGoTrialResult[this.trials.length];
 
+        Integer trialIndex;
+        CTFGoNoGoTrialResult[] trialResults;
 
-        self.performTrials(0, self.trials, results, new PerformTrialsCompletion() {
+        if (result != null
+                && result.getResult() != null
+                && ((CTFGoNoGoResult)result.getResult()).getInProgressTrialResults() != null
+                && ((CTFGoNoGoResult)result.getResult()).getPendingTrialIndex() != null) {
+            trialResults = ((CTFGoNoGoResult)result.getResult()).getInProgressTrialResults();
+            trialIndex = ((CTFGoNoGoResult)result.getResult()).getPendingTrialIndex();
+        }
+
+        else {
+            trialResults = new CTFGoNoGoTrialResult[this.trials.length];
+            trialIndex = 0;
+        }
+
+        this.inProgressTrialResults = trialResults;
+
+        this.performTrials(trialIndex, CTFGoNoGoStepLayout.this.trials, trialResults, new PerformTrialsCompletion() {
             public void completion(CTFGoNoGoTrialResult[] results) {
-                if (!self.canceled) {
-                    self.trialResults = results;
-                    self.onNextClicked();
+                if (!getStopped()) {
+                    CTFGoNoGoStepLayout.this.inProgressTrialResults = null;
+                    CTFGoNoGoStepLayout.this.pendingTrialIndex = null;
+                    CTFGoNoGoStepLayout.this.trialResults = results;
+                    CTFGoNoGoStepLayout.this.onNextClicked();
                 }
             }
         });
@@ -171,7 +192,9 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     }
 
     private void performTrials(int index, CTFGoNoGoTrial[] trials, CTFGoNoGoTrialResult[] results, PerformTrialsCompletion completion) {
-        if (this.canceled) {
+
+        this.pendingTrialIndex = index;
+        if (getStopped()) {
             completion.completion(null);
             return;
         }
@@ -185,13 +208,15 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
             CTFGoNoGoTrial trial = trials[index];
 
-            CTFGoNoGoStepLayout self = this;
-
             this.doTrial(trial, new DoTrialCompletion() {
                 @Override
                 public void completion(CTFGoNoGoTrialResult result) {
+                    if (result == null) {
+                        return;
+                    }
+                    inProgressTrialResults[index] = result;
                     results[index] = result;
-                    self.performTrials(index + 1, trials, results, completion);
+                    CTFGoNoGoStepLayout.this.performTrials(index + 1, trials, results, completion);
                 }
             });
 
@@ -200,73 +225,107 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
     private void doTrial(CTFGoNoGoTrial trial, DoTrialCompletion completion) {
 
-        CTFGoNoGoStepLayout self = this;
+        if (feedbackLabel != null) {
+            feedbackLabel.setText(String.format("trial: %d", trial.getTrialIndex()));
+            feedbackLabel.setAlpha(1.0f);
+        }
+
 
         //1) set view state to blank
-        self.setViewState(CTFGoNoGoViewState.BLANK);
+        CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.BLANK);
         new Handler().postDelayed( new Runnable() {
             @Override
             public void run() {
 
+                if (feedbackLabel != null) {
+                    feedbackLabel.setText("");
+                    feedbackLabel.setAlpha(0.0f);
+                }
+
+                if (getStopped()) {
+                    completion.completion(null);
+                    return;
+                }
+
                 //2) set view state to cross
-                self.setViewState(CTFGoNoGoViewState.CROSS);
+                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.CROSS);
 
                 new Handler().postDelayed( new Runnable() {
                     @Override
                     public void run() {
 
+                        if (getStopped()) {
+                            completion.completion(null);
+                            return;
+                        }
+
                         //1) set view state to blank
-                        self.setViewState(CTFGoNoGoViewState.BLANK);
+                        CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.BLANK);
 
                         new Handler().postDelayed( new Runnable() {
                             @Override
                             public void run() {
 
+                                if (getStopped()) {
+                                    completion.completion(null);
+                                    return;
+                                }
+
                                 //3 set cue
                                 if (trial.getCue() == CTFGoNoGoTrial.CTFGoNoGoCueType.GO) {
-                                    self.setViewState(CTFGoNoGoViewState.GO_CUE);
+                                    CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.GO_CUE);
                                 }
                                 else {
-                                    self.setViewState(CTFGoNoGoViewState.NO_GO_CUE);
+                                    CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.NO_GO_CUE);
                                 }
 
                                 new Handler().postDelayed( new Runnable() {
                                     @Override
                                     public void run() {
 
+                                        if (getStopped()) {
+                                            completion.completion(null);
+                                            return;
+                                        }
+
 
                                         //4 set target, start counter
                                         if (trial.getCue() == CTFGoNoGoTrial.CTFGoNoGoCueType.GO) {
                                             if (trial.getTarget() == CTFGoNoGoTrial.CTFGoNoGoTargetType.GO) {
-                                                self.setViewState(CTFGoNoGoViewState.GO_CUE_GO_TARGET);
+                                                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.GO_CUE_GO_TARGET);
                                             }
                                             else {
-                                                self.setViewState(CTFGoNoGoViewState.GO_CUE_NO_GO_TARGET);
+                                                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.GO_CUE_NO_GO_TARGET);
                                             }
                                         }
                                         else {
                                             if (trial.getTarget() == CTFGoNoGoTrial.CTFGoNoGoTargetType.GO) {
-                                                self.setViewState(CTFGoNoGoViewState.NO_GO_CUE_GO_TARGET);
+                                                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.NO_GO_CUE_GO_TARGET);
                                             }
                                             else {
-                                                self.setViewState(CTFGoNoGoViewState.NO_GO_CUE_NO_GO_TARGET);
+                                                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.NO_GO_CUE_NO_GO_TARGET);
                                             }
                                         }
 
                                         long startTime = SystemClock.elapsedRealtime();
-                                        self.tapTime = 0;
+                                        CTFGoNoGoStepLayout.this.tapTime = 0;
 
                                         new Handler().postDelayed( new Runnable() {
                                             @Override
                                             public void run() {
 
+                                                if (getStopped()) {
+                                                    completion.completion(null);
+                                                    return;
+                                                }
+
 
                                                 //5 delay until trial over, process results, call completion handler
-                                                boolean tapped = self.tapTime != 0;
-                                                long responseTime = tapped ? self.tapTime - startTime : trial.getFillTime();
+                                                boolean tapped = CTFGoNoGoStepLayout.this.tapTime != 0;
+                                                long responseTime = tapped ? CTFGoNoGoStepLayout.this.tapTime - startTime : trial.getFillTime();
 
 
-                                                self.setViewState(CTFGoNoGoViewState.BLANK);
+                                                CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.BLANK);
 
 
                                                 if ( tapped ) {
@@ -292,6 +351,11 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
                                                 new Handler().postDelayed( new Runnable() {
                                                     @Override
                                                     public void run() {
+
+                                                        if (getStopped()) {
+                                                            completion.completion(null);
+                                                            return;
+                                                        }
 
 
                                                         CTFGoNoGoTrialResult result = new CTFGoNoGoTrialResult(trial, responseTime / 1000.0, tapped);
@@ -474,15 +538,26 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
     @Override
     public View getLayout() {
-        this.startTrials();
         return this;
     }
+
+    //handle resume, see https://github.com/ResearchStack/ResearchStack/issues/377
+    @Override
+    protected void onVisibilityChanged(View changedView, int visibility) {
+        if  ((!this.hasStarted || this.stopped) && visibility == VISIBLE) {
+            this.startTrials(this.stepResult);
+        }
+
+        super.onVisibilityChanged(changedView, visibility);
+    }
+
+
 
     @Override
     public boolean isBackEventConsumed()
     {
-        this.canceled = true;
-        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(false));
+        this.stopped = true;
+        callbacks.onSaveStep(StepCallbacks.ACTION_PREV, this.getStep(), this.getStepResult(true));
         return false;
     }
 
@@ -496,14 +571,14 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     @Override
     public Parcelable onSaveInstanceState()
     {
-        this.canceled = true;
+        this.stopped = true;
         callbacks.onSaveStep(StepCallbacks.ACTION_NONE, getStep(), this.getStepResult(false));
         return super.onSaveInstanceState();
     }
 
     protected void onNextClicked()
     {
-        this.canceled = true;
+        this.stopped = true;
         callbacks.onSaveStep(StepCallbacks.ACTION_NEXT,
                 this.getStep(),
                 this.getStepResult(false));
@@ -512,7 +587,7 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
     public void onSkipClicked()
     {
-        this.canceled = true;
+        this.stopped = true;
         if(callbacks != null)
         {
             // empty step result when skipped
@@ -523,10 +598,10 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
     }
 
 
-    public StepResult getStepResult(boolean skipped)
+    public StepResult getStepResult(boolean shouldClear)
     {
 
-        if(skipped || this.trialResults == null)
+        if(shouldClear)
         {
             stepResult.setResult(null);
         }
@@ -536,6 +611,8 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
             result.setTrialResults(this.trialResults);
+            result.setPendingTrialIndex(this.pendingTrialIndex);
+            result.setInProgressTrialResults(this.inProgressTrialResults);
             stepResult.setResult(result);
         }
 

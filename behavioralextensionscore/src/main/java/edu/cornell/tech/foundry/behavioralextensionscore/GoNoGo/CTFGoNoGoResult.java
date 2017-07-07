@@ -8,17 +8,36 @@ import org.researchstack.backbone.result.Result;
 public class CTFGoNoGoResult extends Result {
 
     private CTFGoNoGoTrialResult[] trialResults;
+    private Integer pendingTrialIndex;
+    private CTFGoNoGoTrialResult[] inProgressTrialResults;
 
     public CTFGoNoGoTrialResult[] getTrialResults() {
         return trialResults;
     }
 
     public void setTrialResults(CTFGoNoGoTrialResult[] trialResults) {
-        this.trialResults = trialResults.clone();
+        if (trialResults != null) {
+            this.trialResults = trialResults.clone();
+        }
     }
 
     public CTFGoNoGoResult(String identifier) {
         super(identifier);
     }
 
+    public Integer getPendingTrialIndex() {
+        return pendingTrialIndex;
+    }
+
+    public CTFGoNoGoTrialResult[] getInProgressTrialResults() {
+        return inProgressTrialResults;
+    }
+
+    public void setPendingTrialIndex(Integer pendingTrialIndex) {
+        this.pendingTrialIndex = pendingTrialIndex;
+    }
+
+    public void setInProgressTrialResults(CTFGoNoGoTrialResult[] inProgressTrialResults) {
+        this.inProgressTrialResults = inProgressTrialResults;
+    }
 }
