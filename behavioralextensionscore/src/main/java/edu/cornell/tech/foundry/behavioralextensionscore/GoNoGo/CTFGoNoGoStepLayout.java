@@ -158,8 +158,6 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
         this.hasStarted = true;
         this.stopped = false;
 
-        this.trialResults = null;
-
         Integer trialIndex;
         CTFGoNoGoTrialResult[] trialResults;
 
@@ -177,6 +175,7 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
         }
 
         this.inProgressTrialResults = trialResults;
+        this.trialResults = null;
 
         this.performTrials(trialIndex, CTFGoNoGoStepLayout.this.trials, trialResults, new PerformTrialsCompletion() {
             public void completion(CTFGoNoGoTrialResult[] results) {
@@ -225,22 +224,11 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
 
     private void doTrial(CTFGoNoGoTrial trial, DoTrialCompletion completion) {
 
-        if (feedbackLabel != null) {
-            feedbackLabel.setText(String.format("trial: %d", trial.getTrialIndex()));
-            feedbackLabel.setAlpha(1.0f);
-        }
-
-
         //1) set view state to blank
         CTFGoNoGoStepLayout.this.setViewState(CTFGoNoGoViewState.BLANK);
         new Handler().postDelayed( new Runnable() {
             @Override
             public void run() {
-
-                if (feedbackLabel != null) {
-                    feedbackLabel.setText("");
-                    feedbackLabel.setAlpha(0.0f);
-                }
 
                 if (getStopped()) {
                     completion.completion(null);
@@ -610,9 +598,16 @@ public class CTFGoNoGoStepLayout extends FrameLayout implements StepLayout {
             CTFGoNoGoResult result = new CTFGoNoGoResult(step.getIdentifier());
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
-            result.setTrialResults(this.trialResults);
-            result.setPendingTrialIndex(this.pendingTrialIndex);
-            result.setInProgressTrialResults(this.inProgressTrialResults);
+            if (this.trialResults != null) {
+                result.setTrialResults(this.trialResults);
+                result.setPendingTrialIndex(null);
+                result.setInProgressTrialResults(null);
+            }
+            else {
+                result.setTrialResults(null);
+                result.setPendingTrialIndex(this.pendingTrialIndex);
+                result.setInProgressTrialResults(this.inProgressTrialResults);
+            }
             stepResult.setResult(result);
         }
 

@@ -116,12 +116,13 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
         this.inProgressTrialResults = trialResults;
 
+        this.trialResults = null;
         this.performTrials(firstTrial, trialResults, new PerformTrialsCompletion() {
             @Override
             public void completion(CTFDelayDiscountingTrialResult[] results) {
                 self.trialResults = results;
-                self.inProgressTrialResults = null;
-                self.pendingTrial = null;
+//                self.inProgressTrialResults = null;
+//                self.pendingTrial = null;
                 self.onNextClicked();
             }
         });
@@ -340,9 +341,16 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
             CTFDelayDiscountingResult result = new CTFDelayDiscountingResult(step.getIdentifier());
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
-            result.setTrialResults(this.trialResults);
-            result.setInProgressTrialResults(this.inProgressTrialResults);
-            result.setPendingTrial(this.pendingTrial);
+            if (this.trialResults != null) {
+                result.setTrialResults(this.trialResults);
+                result.setInProgressTrialResults(null);
+                result.setPendingTrial(null);
+            }
+            else {
+                result.setTrialResults(null);
+                result.setInProgressTrialResults(this.inProgressTrialResults);
+                result.setPendingTrial(this.pendingTrial);
+            }
             stepResult.setResult(result);
         }
 

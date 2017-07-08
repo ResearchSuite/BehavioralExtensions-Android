@@ -127,12 +127,13 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
 
         CTFBARTStepLayout self = this;
         inProgressTrialResults = trialResults;
+        this.trialResults = null;
 
         this.performTrials(trialIndex, trials, trialResults, new PerformTrialsCompletion() {
             @Override
             public void completion(CTFBARTTrialResult[] results) {
-                self.inProgressTrialResults = null;
-                self.pendingTrialIndex = null;
+//                self.inProgressTrialResults = null;
+//                self.pendingTrialIndex = null;
                 self.trialResults = results;
                 self.onNextClicked();
             }
@@ -445,9 +446,17 @@ public class CTFBARTStepLayout extends FrameLayout implements StepLayout {
             CTFBARTResult result = new CTFBARTResult(step.getIdentifier());
             result.setStartDate(stepResult.getStartDate());
             result.setEndDate(stepResult.getEndDate());
-            result.setTrialResults(this.trialResults);
-            result.setInProgressTrialResults(this.inProgressTrialResults);
-            result.setPendingTrialIndex(this.pendingTrialIndex);
+            if (this.trialResults != null) {
+                result.setTrialResults(this.trialResults);
+                result.setInProgressTrialResults(null);
+                result.setPendingTrialIndex(null);
+            }
+            else {
+                result.setTrialResults(null);
+                result.setInProgressTrialResults(this.inProgressTrialResults);
+                result.setPendingTrialIndex(this.pendingTrialIndex);
+            }
+
             stepResult.setResult(result);
         }
 
