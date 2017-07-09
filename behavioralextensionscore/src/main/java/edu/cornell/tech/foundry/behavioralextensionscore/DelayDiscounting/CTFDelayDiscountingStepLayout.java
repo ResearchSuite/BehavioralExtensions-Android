@@ -255,7 +255,7 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
 
         // Init root
         LayoutInflater inflater = LayoutInflater.from(getContext());
-        inflater.inflate(R.layout.ctf_delayed_discounting, this, true);
+        inflater.inflate(R.layout.ctf_discounting, this, true);
 
         SubmitBar submitBar = (SubmitBar) findViewById(R.id.rsb_submit_bar);
         submitBar.getPositiveActionView().setVisibility(View.GONE);
@@ -272,8 +272,8 @@ public class CTFDelayDiscountingStepLayout extends FrameLayout implements StepLa
         this.promptTextView = (TextView) findViewById(R.id.prompt_textview);
         this.promptTextView.setText(params.getPrompt());
 
-        this.nowButton = (Button) findViewById(R.id.now_button);
-        this.laterButton = (Button) findViewById(R.id.later_button);
+        this.nowButton = (Button) findViewById(R.id.variable_button);
+        this.laterButton = (Button) findViewById(R.id.constant_button);
 
     }
 
